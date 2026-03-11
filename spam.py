@@ -1,5 +1,4 @@
 import streamlit as st
-import string
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
@@ -7,62 +6,73 @@ import joblib
 import seaborn as sns
 import pandas as pd
 import matplotlib.pyplot as plt
-nltk.download('punkt')
-nltk.download('stopwords')
-df= pd.read_csv('test.csv',  encoding='iso-8859-1')
+
+# ---------------- Download NLTK Data ---------------- #
+
+@st.cache_resource
+def download_nltk():
+    nltk.download("punkt")
+    nltk.download("stopwords")
+
+download_nltk()
+
+# ---------------- Load Dataset ---------------- #
+
+df = pd.read_csv("test.csv", encoding="iso-8859-1")
+
+# ---------------- Initialize Stemmer ---------------- #
 
 ps = PorterStemmer()
+stop_words = set(stopwords.words("english"))
 
-# Load model and vectorizer
+# ---------------- Load Model ---------------- #
 
 model = joblib.load("model.pkl")
 tfidf = joblib.load("vectorizer.pkl")
 
+# ---------------- Text Preprocessing ---------------- #
+
 def transform_message(message):
     message = message.lower()
     message = nltk.word_tokenize(message)
-    
-    y = [ps.stem(word) for word in message if word.isalnum() and word not in stopwords.words('english')]
+
+    y = [ps.stem(word) for word in message if word.isalnum() and word not in stop_words]
+
     return " ".join(y)
 
-st.title("Text Classification App")
+# ---------------- Streamlit UI ---------------- #
+
+st.title("📧 Spam Detection App")
+
 msg = st.text_input("Enter your message")
-tfidf = joblib.load("vectorizer.pkl")
 
 if msg:
+
     transformed_msg = transform_message(msg)
+
     vector_input = tfidf.transform([transformed_msg]).toarray()
+
     prediction = model.predict(vector_input)
-   
+
     st.write("Prediction:", prediction[0])
 
-    if prediction==1:
-        st.write("⚠️Spam")
+    if prediction[0] == 1:
+        st.error("⚠️ Spam Message")
     else:
-        st.write("Not Spam")
+        st.success("✅ Not Spam")
 
+# # ---------------- Sidebar ---------------- #
 
-# sidebar :-
+# st.sidebar.title("📊 Sidebar")
 
-# st.sidebar.title("Sidebar")
-# st.sidebar.write("This is a Sidebar")
+# sidebar_option = st.sidebar.selectbox("Choose option", ["Prediction", "Charts"])
 
-# # sidebar inputs
-# sidebar_option=st.sidebar.selectbox("choose option",["Prediction","Charts"])
+# if sidebar_option == "Charts":
 
-# fig, ax = plt.subplots()
-# sns.heatmap(df.corr(numeric_only=True), annot=True, ax=ax)
-# st.pyplot(fig)
+#     st.subheader("Dataset Correlation Heatmap")
 
-# sns.show()
+#     fig, ax = plt.subplots()
 
+#     sns.heatmap(df.corr(numeric_only=True), annot=True, ax=ax)
 
-# sidebar_slider=st.sidebar.slider("Sidebar slider",0,100,50)
-
-
-## Sidebar with form
-
-# with st.sidebar:
-#     st.header("Settings")
-#     filter_option=st.selectbox("Filter by",["All","CategoryA","CategoryB"])
-#     data_range=st.date_input("Date range",[])
+#     st.pyplot(fig)
