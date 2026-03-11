@@ -42,7 +42,7 @@ def transform_message(message):
 
 # ---------------- Streamlit code ---------------- #
 
-st.title("📧 Spam Email Detection App")
+st.title("Spam Email Detection App")
 
 st.write("Enter a message below to check if it is **Spam or Not Spam**.")
 
@@ -62,3 +62,4 @@ if msg:
         st.success("✅ Not Spam")
 
     st.write("Prediction Value:", prediction[0])
+
